@@ -42,6 +42,77 @@ The set of variables that were estimated from these signals are:
 
 Finally the data set is grouped by SubjectID and activityName. Then Average is calculated for each of the measured value across each group that was created by grouping the data. Each row in `groupedAvgDataStep5.txt` corresponds to one group of SubjectID and activityName. Each row contains SubjectID, activityName and mean of all the data points specified above.
 
+Following are the variable names:
+
+* SubjectID
+* activityName
+* Average tBodyAcc-mean()-X
+* Average tBodyAcc-mean()-Y
+* Average tBodyAcc-mean()-Z
+* Average tBodyAcc-std()-X
+* Average tBodyAcc-std()-Y
+* Average tBodyAcc-std()-Z
+* Average tGravityAcc-mean()-X
+* Average tGravityAcc-mean()-Y
+* Average tGravityAcc-mean()-Z
+* Average tGravityAcc-std()-X
+* Average tGravityAcc-std()-Y
+* Average tGravityAcc-std()-Z
+* Average tBodyAccJerk-mean()-X
+* Average tBodyAccJerk-mean()-Y
+* Average tBodyAccJerk-mean()-Z
+* Average tBodyAccJerk-std()-X
+* Average tBodyAccJerk-std()-Y
+* Average tBodyAccJerk-std()-Z
+* Average tBodyGyro-mean()-X
+* Average tBodyGyro-mean()-Y
+* Average tBodyGyro-mean()-Z
+* Average tBodyGyro-std()-X
+* Average tBodyGyro-std()-Y
+* Average tBodyGyro-std()-Z
+* Average tBodyGyroJerk-mean()-X
+* Average tBodyGyroJerk-mean()-Y
+* Average tBodyGyroJerk-mean()-Z
+* Average tBodyGyroJerk-std()-X
+* Average tBodyGyroJerk-std()-Y
+* Average tBodyGyroJerk-std()-Z
+* Average tBodyAccMag-mean()
+* Average tBodyAccMag-std()
+* Average tGravityAccMag-mean()
+* Average tGravityAccMag-std()
+* Average tBodyAccJerkMag-mean()
+* Average tBodyAccJerkMag-std()
+* Average tBodyGyroMag-mean()
+* Average tBodyGyroMag-std()
+* Average tBodyGyroJerkMag-mean()
+* Average tBodyGyroJerkMag-std()
+* Average fBodyAcc-mean()-X
+* Average fBodyAcc-mean()-Y
+* Average fBodyAcc-mean()-Z
+* Average fBodyAcc-std()-X
+* Average fBodyAcc-std()-Y
+* Average fBodyAcc-std()-Z
+* Average fBodyAccJerk-mean()-X
+* Average fBodyAccJerk-mean()-Y
+* Average fBodyAccJerk-mean()-Z
+* Average fBodyAccJerk-std()-X
+* Average fBodyAccJerk-std()-Y
+* Average fBodyAccJerk-std()-Z
+* Average fBodyGyro-mean()-X
+* Average fBodyGyro-mean()-Y
+* Average fBodyGyro-mean()-Z
+* Average fBodyGyro-std()-X
+* Average fBodyGyro-std()-Y
+* Average fBodyGyro-std()-Z
+* Average fBodyAccMag-mean()
+* Average fBodyAccMag-std()
+* Average fBodyBodyAccJerkMag-mean()
+* Average fBodyBodyAccJerkMag-std()
+* Average fBodyBodyGyroMag-mean()
+* Average fBodyBodyGyroMag-std()
+* Average fBodyBodyGyroJerkMag-mean()
+* Average fBodyBodyGyroJerkMag-std()
+
 ## License
 Copied from original README.txt file.
 

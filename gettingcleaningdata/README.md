@@ -8,6 +8,7 @@ File `groupedAvgDataStep5.txt` containg tidy data set with the average of each v
 
 ## Assumptions
 Original data is unziped and kept in following directory structure
+
     UCI HAR Dataset/:
         activity_labels.txt
         features_info.txt
