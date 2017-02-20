@@ -1,0 +1,249 @@
+---
+title: "MachineLearningExcercisePredictionAssignment"
+author: "Kiran"
+date: "February 19, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE, cache=TRUE, quietly=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+library(caret)
+set.seed(20170219)
+```
+
+## Introduction
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har
+
+The goal of this assignment is to predict the manner in which the users did the exercise (Classe A, B, C, D or E). More information about these classes is available at http://groupware.les.inf.puc-rio.br/har
+
+## Read Data
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. 
+
+Assume "pml-training.csv" data file is present in current directory.
+
+```{r warning=FALSE, message=FALSE, cache=TRUE, quietly=TRUE}
+training <- read.csv("pml-training.csv", 
+                     na.strings = c("", "NA"))
+
+```
+
+## Create training and testing data sets
+
+The training data file will be divided into two sets. About 70% of data will be used for training the model while other 30% will be used as testing data for cross validation of the model. The "out of sample error" will be derived by predicting "classe" value for testing data. The higher the value of "out of sample error" the worse the model and predictor are.
+
+I hit my system's resource limit to fit boost model on entire training. So I have taken 10% of training data to compare results of random forest and boost prediction algorithms. See variables with 10p suffix in the code below.
+
+```{r warning=FALSE, message=FALSE, cache=TRUE, quietly=TRUE}
+inTrain <- createDataPartition(y=training$classe, 
+                               p=0.7, 
+                               list=FALSE)
+
+mytraining <- training[inTrain,]
+mytesting <- training[-inTrain,]
+
+# Take 10% of training and testing sample for model validation.
+inTrain10p <- createDataPartition(y=training$classe, 
+                               p=0.1, 
+                               list=FALSE)
+
+mytraining10p <- training[inTrain10p,]
+restTraining <- training[-inTrain10p,]
+inTest10p <- createDataPartition(y=restTraining$classe, 
+                               p=0.1, 
+                               list=FALSE)
+mytesting10p <- restTraining[inTest10p,]
+
+```
+
+## Data Exploration
+Explore data to narrow down on important columns that can be used as predictors. There are many columns that have many empty or NA values (for exmaple, kurtosis_*, skewness_* etc). Those columns are not worth considering for prediction. 
+
+The random forest model will be suitable model for this problem. There are multiple predictors and intitutively we can see that there isn't linear relationship of outcome with any of the predictor.
+
+The roll, pitch and yaw related data for each sensor is important. These columns indicates motion of sensors around each of the three axis. This excecise deals with motion of various body parts and dumbbell along the three axis (rather than their acceleration, direction of movement etc.). So the roll, pitch and yaw related data are of most importance. Following code explores random forest model accuracy for each of this set of variables to see which set is most important.
+
+The "out of sample error" will be derived by predicting "classe" value for testing data. The higher the value of "out of sample error" the worse the model and predictor are.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE, cache=TRUE, quietly=TRUE}
+modrf <- train(classe ~ 
+                 roll_belt     + pitch_belt     + yaw_belt, 
+               data=mytraining, 
+               method = "rf", 
+               proxy = TRUE)
+
+predrf <- predict(modrf, mytesting)
+predright <- predrf == mytesting$classe
+errorSet1 <- length(which(predright==FALSE))/length(predright)
+
+print("Predictors: roll_belt, pitch_belt and yaw_belt")
+sprintf("Out of sample prediction error: %f", errorSet1)
+
+confM <- confusionMatrix(predict(modrf, mytesting), 
+                         mytesting$classe)
+
+modrf <- train(classe ~ 
+                 roll_arm      + pitch_arm      + yaw_arm, 
+               data=mytraining, 
+               method = "rf", 
+               proxy = TRUE)
+
+predrf <- predict(modrf, mytesting)
+predright <- predrf == mytesting$classe
+errorSet2 <- length(which(predright==FALSE))/length(predright)
+
+print("Predictors: roll_arm, pitch_arm and yaw_arm")
+sprintf("Out of sample prediction error: %f", errorSet2)
+
+confM <- confusionMatrix(predict(modrf, mytesting), 
+                         mytesting$classe)
+
+modrf <- train(classe ~
+                 roll_dumbbell + pitch_dumbbell + yaw_dumbbell, 
+               data=mytraining, 
+               method = "rf", 
+               proxy = TRUE)
+
+predrf <- predict(modrf, mytesting)
+predright <- predrf == mytesting$classe
+errorSet3 <- length(which(predright==FALSE))/length(predright)
+
+print("Predictors: roll_dumbbell, pitch_dumbbell and yaw_dumbbell")
+sprintf("Out of sample prediction error: %f", errorSet3)
+
+confM <- confusionMatrix(predict(modrf, mytesting), 
+                         mytesting$classe)
+
+modrf <- train(classe ~ 
+                 roll_forearm  + pitch_forearm  + yaw_forearm, 
+               data=mytraining, 
+               method = "rf", 
+               proxy = TRUE)
+
+predrf <- predict(modrf, mytesting)
+predright <- predrf == mytesting$classe
+errorSet4 <- length(which(predright==FALSE))/length(predright)
+
+print("Predictors: roll_forearm, pitch_forearm and yaw_forearm")
+sprintf("Out of sample prediction error: %f", errorSet4)
+
+confM <- confusionMatrix(predict(modrf, mytesting), 
+                         mytesting$classe)
+```
+
+It can be concluded that taking individual sets as predictor is causing out of sample error to be very high. All of the sets together can be used as predictors (total 12 predictors). The next section calculates out of sample error with that approach of using all sets as predictors.
+
+## Train Random Forest model
+
+```{r warning=FALSE, message=FALSE, cache=TRUE, quietly=TRUE}
+modrf <- train(classe ~ 
+                 roll_belt     + pitch_belt     + yaw_belt     +
+                 roll_arm      + pitch_arm      + yaw_arm      +
+                 roll_dumbbell + pitch_dumbbell + yaw_dumbbell +
+                 roll_forearm  + pitch_forearm  + yaw_forearm, 
+               data=mytraining, 
+               method = "rf", 
+               proxy = TRUE)
+
+
+```
+
+Do the same random forest model fit for 10% dataset. This is only used for comparing random forest and boost prediction algorithm later.
+
+```{r warning=FALSE, message=FALSE, cache=TRUE, quietly=TRUE}
+modrf10p <- train(classe ~ 
+                    roll_belt     + pitch_belt     + yaw_belt     +
+                    roll_arm      + pitch_arm      + yaw_arm      +
+                    roll_dumbbell + pitch_dumbbell + yaw_dumbbell +
+                    roll_forearm  + pitch_forearm  + yaw_forearm,
+                  data=mytraining10p,
+                  method = "rf",
+                  proxy = TRUE)
+
+
+```
+
+## Perform cross validation for random forest model
+Predict "classe" of the 30% testing data that was created earlier. Then use that prediction of random forest model to cross validate with actual value of "classe" value in testing data.
+
+
+```{r warning=FALSE, message=FALSE, cache=TRUE, quietly=TRUE}
+predrf <- predict(modrf, mytesting)
+predrfright <- predrf == mytesting$classe
+errorRf <- length(which(predrfright==FALSE))/length(predrfright)
+
+sprintf("Out of sample prediction error: %f", errorRf)
+
+confMrf <- confusionMatrix(predict(modrf, mytesting), 
+                         mytesting$classe)
+confMrf
+confMatrixRf <- data.matrix(confMrf$table)
+heatmap(confMatrixRf, 
+        Rowv = NA, 
+        Colv = NA, 
+        main = "Heatmap of confusion matrix (Random Forest)",
+        col = cm.colors(256)
+        )
+
+```
+
+Do the same prediction for 10% dataset. This is only used for comparing random forest and boost prediction algorithm later.
+```{r warning=FALSE, message=FALSE, cache=TRUE, quietly=TRUE}
+predrf10p <- predict(modrf10p, mytesting10p)
+predrfright10p <- predrf10p == mytesting10p$classe
+errorRf10p <- length(which(predrfright10p==FALSE))/length(predrfright10p)
+
+sprintf("Out of sample prediction error: %f", errorRf10p)
+
+confMrf10p <- confusionMatrix(predict(modrf10p, mytesting10p), 
+                              mytesting10p$classe)
+confMrf10p
+confMatrixRf10p <- data.matrix(confMrf10p$table)
+heatmap(confMatrixRf10p, 
+        Rowv = NA, 
+        Colv = NA, 
+        main = "Heatmap of confusion matrix (Random Forest 10% data)",
+        col = cm.colors(256)
+        )
+
+```
+
+## Train Boost model
+
+```{r warning=FALSE, message=FALSE, cache=TRUE, quietly=TRUE}
+modboost10p <- train(classe ~
+                       roll_belt     + pitch_belt     + yaw_belt     +
+                       roll_arm      + pitch_arm      + yaw_arm      +
+                       roll_dumbbell + pitch_dumbbell + yaw_dumbbell +
+                       roll_forearm  + pitch_forearm  + yaw_forearm,
+                     data=mytraining10p,
+                     method = "gbm",
+                     verbose = FALSE)
+
+```
+
+## Perform cross validation for boost model
+Predict "classe" of the 10% testing data that was created earlier. Then use that prediction to cross validate boost model with actual value of "classe" value in testing data.
+
+```{r warning=FALSE, message=FALSE, cache=TRUE, quietly=TRUE}
+predboost10p <- predict(modboost10p, mytesting10p)
+predboostright10p <- predboost10p == mytesting10p$classe
+
+errorBoost10p <- length(which(predboostright10p==FALSE))/length(predboostright10p)
+
+sprintf("Out of sample prediction error: %f", errorBoost10p)
+
+confMboost10p <- confusionMatrix(predict(modboost10p, mytesting10p), 
+                                 mytesting10p$classe)
+confMboost10p
+confMatrixBoost10p <- data.matrix(confMboost10p$table)
+heatmap(confMatrixBoost10p, 
+        Rowv = NA, 
+        Colv = NA, 
+        main = "Heatmap of confusion matrix (Boost 10% data)",
+        col = cm.colors(256)
+        )
+```
+
+## Conclusion
+As evident from data shown above. The random forest model with all roll, pitch and yaw sensor data is the best prediction model. The out of sample error rate for random forest model is `r errorRf10p` while boost model's out of sample error is `r errorBoost10p`.
